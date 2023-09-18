@@ -6,6 +6,8 @@ import gr.cinema.api.dto.RoomDTO;
 import gr.cinema.api.entity.Performance;
 import gr.cinema.api.entity.PerformanceStaging;
 import gr.cinema.api.entity.Room;
+import gr.cinema.api.exception.BadRequestException;
+import gr.cinema.api.exception.NotFoundException;
 import gr.cinema.api.repository.PerformanceStagingRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -109,16 +111,18 @@ public class PerformanceStagingService {
         final PerformanceStaging performanceStaging = getPerformanceStaging(id);
 
         if (performanceStaging == null) {
-            //   throw new NotFoundException();
+            LOGGER.error("getPerformanceStaging() PerformanceStaging with 'ID': {} Does not exist!", id);
+            throw new NotFoundException();
         }
         return toPerformanceStagingDTO(performanceStaging);
     }
 
     public PerformanceStagingDTO insertPerformanceStagingDTO(PerformanceStagingDTO performanceStagingDTO) {
         if (performanceStagingDTO.getId() != null) {
-            LOGGER.error("insertPerformanceStaging(): there is a body 'id': {}", performanceStagingDTO.getId());
-            //throw new BadRequestException();
+            LOGGER.error("insertPerformanceStagingDTO(): there is a body 'ID': {}", performanceStagingDTO.getId());
+            throw new BadRequestException();
         }
+
         PerformanceStaging performanceStaging = new PerformanceStaging();
         toPerformanceStaging(performanceStagingDTO, performanceStaging);
 
@@ -129,7 +133,7 @@ public class PerformanceStagingService {
         performanceStaging.setRoom(room);
 
         performanceStaging = performanceStagingRepository.save(performanceStaging);
-        LOGGER.info("insertPerformanceStaging() : {}", performanceStagingDTO);
+        LOGGER.info("insertPerformanceStagingDTO: You inserted successfully new PerformanceStaging to: {}", performanceStagingDTO);
 
         return toPerformanceStagingDTO(performanceStaging);
     }
@@ -139,18 +143,18 @@ public class PerformanceStagingService {
 
         toPerformanceStaging(performanceStagingDTO, performanceStaging);
         performanceStaging = performanceStagingRepository.save(performanceStaging);
-        LOGGER.info("updatePerformanceStaging(): update to: {}", performanceStagingDTO);
+        LOGGER.info("updatePerformanceStagingDTO() You updated successfully PerformanceStaging to: {}", performanceStagingDTO);
 
         return toPerformanceStagingDTO(performanceStaging);
     }
 
     public void deletePerformanceStaging(Long id) throws Exception {
         if (!performanceStagingRepository.existsById(id)) {
-            LOGGER.error("deletePerformanceStaging(): performanceStaging with id {} does not exist", id);
+            LOGGER.error("deletePerformanceStaging(): PerformanceStaging with 'ID' {} does not exist.", id);
             throw new Exception("NotFound");
         }
         performanceStagingRepository.deleteById(id);
-        LOGGER.info("deletePerformanceStaging() with id: {}", id);
+        LOGGER.info("deletePerformanceStaging(): You deleted successfully PerformanceStaging with 'ID': {}", id);
     }
 
     private PerformanceStagingDTO toPerformanceStagingDTO(PerformanceStaging performanceStaging) {

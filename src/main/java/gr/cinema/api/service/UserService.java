@@ -29,23 +29,6 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-
-    public User getUser(Long id) {
-        LOGGER.info("getUser() with 'ID': {}", id);
-        return userRepository.findById(id).orElse(null);
-    }
-
-    public UserDTO getUserDTO(Long id) {
-        LOGGER.info("getUserDTO() with 'ID': {}", id);
-        final User user = getUser(id);
-
-        if (user == null) {
-            LOGGER.error("getUserDTO() User with 'ID': {} Does not exist!", id);
-            throw new NotFoundException();
-        }
-        return toUserDTO(user);
-    }
-
     public List<UserDTO> getUsersByNameDTOList(String name) {
         LOGGER.info("getUsersByNameDTOList()");
 
@@ -71,6 +54,22 @@ public class UserService {
         }
 
         return userDTOList;
+    }
+
+    public User getUser(Long id) {
+        LOGGER.info("getUser() with 'ID': {}", id);
+        return userRepository.findById(id).orElse(null);
+    }
+
+    public UserDTO getUserDTO(Long id) {
+        LOGGER.info("getUserDTO() with 'ID': {}", id);
+        final User user = getUser(id);
+
+        if (user == null) {
+            LOGGER.error("getUserDTO() User with 'ID': {} Does not exist!", id);
+            throw new NotFoundException();
+        }
+        return toUserDTO(user);
     }
 
     public UserDTO insertUserDTO(UserDTO userDTO) {
