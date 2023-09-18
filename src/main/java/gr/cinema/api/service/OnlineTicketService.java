@@ -4,6 +4,8 @@ import gr.cinema.api.dto.OnlineTicketDTO;
 import gr.cinema.api.dto.TicketDTO;
 import gr.cinema.api.entity.OnlineTicket;
 import gr.cinema.api.entity.Ticket;
+import gr.cinema.api.exception.BadRequestException;
+import gr.cinema.api.exception.NotFoundException;
 import gr.cinema.api.repository.OnlineTicketRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,9 +36,12 @@ public class OnlineTicketService {
     public OnlineTicketDTO getOnlineTicketDTO(Long id) {
         LOGGER.info("getOnlineTicketDTO() with id: {}", id);
         final OnlineTicket onlineTicket = getOnlineTicket(id);
+
         if (onlineTicket == null) {
-            //throw new NotFoundException();
+            LOGGER.error("getOnlineTicketDTO(): OnlineTicket with 'ID': {} Does not exist!", id);
+            throw new NotFoundException();
         }
+
         return toOnlineTicketDTO(onlineTicket);
     }
 
@@ -54,8 +59,8 @@ public class OnlineTicketService {
 
     public OnlineTicketDTO insertOnlineTicketDTO(OnlineTicketDTO onlineTicketDTO) {
         if (onlineTicketDTO.getId() != null) {
-            LOGGER.error("insertCustomerDTO(): there is no body 'id': {}", onlineTicketDTO.getId());
-            //throw new BadRequestException();
+            LOGGER.error("insertOnlineTicketDTO(): there is a body 'ID': {}", onlineTicketDTO.getId());
+            throw new BadRequestException();
         }
         OnlineTicket onlineTicket = new OnlineTicket();
         toOnlineTicket(onlineTicketDTO, onlineTicket);
@@ -65,9 +70,9 @@ public class OnlineTicketService {
         onlineTicket.setTicket(ticket); // Set the ticket to the OnlineTicket entity
 
         onlineTicket = onlineTicketRepository.save(onlineTicket);
-        LOGGER.info("insertOnlineTicketDTO: {}", onlineTicketDTO);
-        return toOnlineTicketDTO(onlineTicket);
+        LOGGER.info("insertOnlineTicketDTO: You inserted successfully new OnlineTicket to: {}", onlineTicketDTO);
 
+        return toOnlineTicketDTO(onlineTicket);
     }
 
     public OnlineTicketDTO updateOnlineTicketDTO(OnlineTicketDTO onlineTicketDTO) throws Exception {
@@ -76,17 +81,17 @@ public class OnlineTicketService {
         toOnlineTicket(onlineTicketDTO , onlineTicket);
         onlineTicket = onlineTicketRepository.save(onlineTicket);
 
-        LOGGER.info("updateCountryDTO() update to: {}", onlineTicketDTO);
+        LOGGER.info("updateOnlineTicketDTO() You updated successfully OnlineTicket to: {}", onlineTicketDTO);
         return toOnlineTicketDTO(onlineTicket);
     }
 
     public void deleteOnlineTicket(Long id) throws Exception {
         if (!onlineTicketRepository.existsById(id)) {
-            LOGGER.error("deleteCountry(): country with id {} does not exists.", id);
+            LOGGER.error("deleteOnlineTicket(): OnlineTicket with 'ID': {} does not exist.", id);
             throw new Exception("Not Found");
         }
         onlineTicketRepository.deleteById(id);
-        LOGGER.info("deleteCountry() with id: {}", id);
+        LOGGER.info("deleteOnlineTicket(): You deleted successfully OnlineTicket with 'ID': {}", id);
     }
 
     private OnlineTicketDTO toOnlineTicketDTO(OnlineTicket onlineTicket) {

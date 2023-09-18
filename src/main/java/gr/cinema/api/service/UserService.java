@@ -86,7 +86,7 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
         user = userRepository.save(user);
-        LOGGER.info("insertUserDTO: You inserted successfully new user with 'ID': {}", userDTO);
+        LOGGER.info("insertUserDTO: You inserted successfully new user to: {}", userDTO);
 
         return toUserDTO(user);
     }
@@ -96,7 +96,7 @@ public class UserService {
 
         toUser(userDTO, user);
         user = userRepository.save(user);
-        LOGGER.info("updateUserDTO() You updated successfully user with 'ID': {}", userDTO);
+        LOGGER.info("updateUserDTO() You updated successfully user to: {}", userDTO);
 
         return toUserDTO(user);
     }
@@ -107,7 +107,7 @@ public class UserService {
             throw new Exception("NotFound");
         }
         userRepository.deleteById(id);
-        LOGGER.info("deleteUser() You deleted successfully user with 'ID': {}", id);
+        LOGGER.info("deleteUser(): You deleted successfully user with 'ID': {}", id);
     }
 
     private UserDTO toUserDTO(User user) {
