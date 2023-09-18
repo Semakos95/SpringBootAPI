@@ -6,6 +6,8 @@ import gr.cinema.api.dto.SectionDTO;
 import gr.cinema.api.entity.Performance;
 import gr.cinema.api.entity.PerformancePrice;
 import gr.cinema.api.entity.Section;
+import gr.cinema.api.exception.BadRequestException;
+import gr.cinema.api.exception.NotFoundException;
 import gr.cinema.api.repository.PerformancePriceRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,20 +31,18 @@ public class PerformancePriceService {
         this.sectionService = sectionService;
     }
 
-
-    //todo: fix all exceptions
-
     public PerformancePrice getPerformancePrice(Long id) {
-        LOGGER.info("getPerformancePrice() with id: {}", id);
+        LOGGER.info("getPerformancePrice() with 'ID': {}", id);
         return performancePriceRepository.findById(id).orElse(null);
     }
 
     public PerformancePriceDTO getPerformancePriceDTO(Long id) {
-        LOGGER.info("getPerformancePriceDTO() with id: {}", id);
+        LOGGER.info("getPerformancePriceDTO() with 'ID': {}", id);
         final PerformancePrice performancePrice = getPerformancePrice(id);
 
         if (performancePrice == null) {
-            // throw new NotFoundException();
+            LOGGER.error("getPerformancePriceDTO() PerformancePrice with 'ID': {} Does not exist!", id);
+            throw new NotFoundException();
         }
         return toPerformancePriceDTO(performancePrice);
     }
@@ -74,7 +74,8 @@ public class PerformancePriceService {
 
     public PerformancePriceDTO insertPerformancePriceDTO(PerformancePriceDTO performancePriceDTO) {
         if (performancePriceDTO.getId() != null) {
-            LOGGER.error("insertPerformancePriceDTO(): there is a body 'id': {} ", performancePriceDTO.getId());
+            LOGGER.error("insertPerformancePriceDTO(): there is a body 'ID': {} ", performancePriceDTO.getId());
+            throw new BadRequestException();
         }
 
         PerformancePrice performancePrice = new PerformancePrice();
@@ -87,7 +88,7 @@ public class PerformancePriceService {
         performancePrice.setSection(section);
 
         performancePrice = performancePriceRepository.save(performancePrice);
-        LOGGER.info("insertPerformancePriceDTO(): {}", performancePriceDTO);
+        LOGGER.info("insertPerformancePriceDTO: You inserted successfully new PerformancePrice to: {}", performancePriceDTO);
 
         return toPerformancePriceDTO(performancePrice);
     }
@@ -97,18 +98,19 @@ public class PerformancePriceService {
 
         toPerformancePrice(performancePriceDTO, performancePrice);
         performancePrice = performancePriceRepository.save(performancePrice);
-        LOGGER.info("updatePerformancePriceDTO() update to: {}", performancePriceDTO);
+        LOGGER.info("updatePerformancePriceDTO() You updated successfully PerformancePrice to: {}", performancePriceDTO);
 
         return toPerformancePriceDTO(performancePrice);
     }
 
     public void deletePerformancePrice(Long id) throws Exception {
         if (!performancePriceRepository.existsById(id)) {
-            LOGGER.error("deletePerformancePrice(): performancePrice with id {} does not exist.", id);
+            LOGGER.error("deletePerformancePrice(): PerformancePrice with 'ID' {} does not exist.", id);
             throw new Exception("NotFound");
         }
+
         performancePriceRepository.deleteById(id);
-        LOGGER.error("deletePerformancePrice() : with id {}", id);
+        LOGGER.error("deletePerformancePrice() You deleted successfully PerformancePrice with 'ID': {}", id);
     }
 
     private PerformancePriceDTO toPerformancePriceDTO(PerformancePrice performancePrice) {

@@ -26,7 +26,7 @@ public class OnlineTicketService {
         this.onlineTicketRepository = onlineTicketRepository;
         this.ticketService = ticketService;
     }
-    //todo: fix all exceptions
+
 
     public OnlineTicket getOnlineTicket(Long id) {
         LOGGER.info("getOnlineTicket() with id: {}", id);
