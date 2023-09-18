@@ -3,11 +3,12 @@ package gr.cinema.api.service;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
 import gr.cinema.api.dto.UserDTO;
 import gr.cinema.api.dto.PerformanceDTO;
 import gr.cinema.api.entity.User;
 import gr.cinema.api.entity.Performance;
+import gr.cinema.api.exception.BadRequestException;
+import gr.cinema.api.exception.NotFoundException;
 import gr.cinema.api.repository.PerformanceRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,7 +63,7 @@ public class PerformanceService {
     }
 
     public List<PerformanceDTO> searchPerformancesByTitleDTOList(String keyword) {
-        LOGGER.info("getPerformanceByTitleContaining()");
+        LOGGER.info("searchPerformancesByTitleDTOList()");
         final List<Performance> performanceList = performanceRepository.findByTitleContaining(keyword);
         final List<PerformanceDTO> performanceDTOList = new ArrayList<>();
 
@@ -87,25 +88,27 @@ public class PerformanceService {
     }
 
     public Performance getPerformance(Long id) {
-        LOGGER.info("getPerformance() with id: {}", id);
+        LOGGER.info("getPerformance() with 'ID': {}", id);
         return performanceRepository.findById(id).orElse(null);
     }
 
     public PerformanceDTO getPerformanceDTO(Long id) {
-        LOGGER.info("getPerformanceDTO() with id: {}", id);
+        LOGGER.info("getPerformanceDTO() with 'ID': {}", id);
         final Performance performance = getPerformance(id);
 
         if (performance == null) {
-            //throw new NotFoundException();
+            LOGGER.error("getPerformanceDTO(): Performance with 'ID': {} Does not exist!", id);
+            throw new NotFoundException();
         }
         return toPerformanceDTO(performance);
     }
 
     public PerformanceDTO insertPerformanceDTO(PerformanceDTO performanceDTO) {
         if (performanceDTO.getId() != null) {
-            LOGGER.error("insertPerformanceDTO(): there is a body 'id': {}", performanceDTO.getId());
-            //throw new BadRequestException();
+            LOGGER.error("insertPerformanceDTO(): there is a body 'ID': {}", performanceDTO.getId());
+            throw new BadRequestException();
         }
+
         Performance performance = new Performance();
         toPerformance(performanceDTO, performance);
 
@@ -113,7 +116,7 @@ public class PerformanceService {
         performance.setUser(user);
 
         performance = performanceRepository.save(performance);
-        LOGGER.info("insertPerformanceDTO(): {}", performanceDTO);
+        LOGGER.info("insertPerformanceDTO(): You inserted successfully new Performance to: {}", performanceDTO);
 
         return toPerformanceDTO(performance);
     }
@@ -123,18 +126,18 @@ public class PerformanceService {
 
         toPerformance(performanceDTO, performance);
         performance = performanceRepository.save(performance);
-        LOGGER.info("updatePerformanceDTO() update to: {} ", performanceDTO);
+        LOGGER.info("updatePerformanceDTO() You updated successfully Performance to: {} ", performanceDTO);
 
         return toPerformanceDTO(performance);
     }
 
     public void deletePerformance(Long id) throws Exception {
         if (!performanceRepository.existsById(id)) {
-            LOGGER.error("deletePerformance(): performance with id {} does not exist.", id);
+            LOGGER.error("deletePerformance(): Performance with 'ID' {} does not exist.", id);
             throw new Exception("NotFound");
         }
         performanceRepository.deleteById(id);
-        LOGGER.info("deletePerformance() with id: {}", id);
+        LOGGER.info("deletePerformance(): You deleted successfully Performance with 'ID': {}", id);
     }
 
     public PerformanceDTO toPerformanceDTO(Performance performance) {

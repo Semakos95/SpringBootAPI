@@ -31,23 +31,23 @@ public class UserService {
 
 
     public User getUser(Long id) {
-        LOGGER.info("getUser() with id: {}", id);
+        LOGGER.info("getUser() with 'ID': {}", id);
         return userRepository.findById(id).orElse(null);
     }
 
     public UserDTO getUserDTO(Long id) {
-        LOGGER.info("getUserDTO() with id: {}", id);
+        LOGGER.info("getUserDTO() with 'ID': {}", id);
         final User user = getUser(id);
 
         if (user == null) {
-            LOGGER.error("getUserDTO() User with id: {} Does not exist!", id);
+            LOGGER.error("getUserDTO() User with 'ID': {} Does not exist!", id);
             throw new NotFoundException();
         }
         return toUserDTO(user);
     }
 
     public List<UserDTO> getUsersByNameDTOList(String name) {
-        LOGGER.info("getUsersByName()");
+        LOGGER.info("getUsersByNameDTOList()");
 
         final List<User> userList = userRepository.findByFirstName(name);
         final List<UserDTO> userDTOList = new ArrayList<>();
@@ -59,9 +59,8 @@ public class UserService {
         return userDTOList;
     }
 
-
     public List<UserDTO> getAllUserDTOList() {
-        LOGGER.info("getAllUsers()");
+        LOGGER.info("getAllUserDTOList()");
 
         final List<User> userList = userRepository.findAll();
         final List<UserDTO> userDTOList = new ArrayList<>();
