@@ -6,6 +6,8 @@ import gr.cinema.api.dto.RoomDTO;
 import gr.cinema.api.entity.User;
 import gr.cinema.api.entity.Rent;
 import gr.cinema.api.entity.Room;
+import gr.cinema.api.exception.BadRequestException;
+import gr.cinema.api.exception.NotFoundException;
 import gr.cinema.api.repository.RentRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +45,7 @@ public class RentService {
     }
 
     public List<RentDTO> getAllRentsDTOList() {
-        LOGGER.info("getAllRents()");
+        LOGGER.info("getAllRentsDTOList()");
         final List<Rent> rentList = rentRepository.findAll();
         final List<RentDTO> rentDTOList = new ArrayList<>();
 
@@ -67,32 +69,33 @@ public class RentService {
     }
 
     public Rent getRent(Long id) {
-        LOGGER.info("getRent() with id: {}", id);
+        LOGGER.info("getRent() with 'ID': {}", id);
         return rentRepository.findById(id).orElse(null);
     }
 
     public RentDTO getRentDTO(Long id) {
-        LOGGER.info("getRentDTO() with id: {}", id);
+        LOGGER.info("getRentDTO() with 'ID': {}", id);
         final Rent rent = getRent(id);
 
         if (rent == null) {
-            //throw new NotFoundException();
+            LOGGER.error("getRentDTO() Rent with 'ID': {} Does not exist!", id);
+            throw new NotFoundException();
         }
         return toRentDTO(rent);
     }
 
-    public RentDTO insertRentDTO(RentDTO rentDTO)throws Exception {
+    public RentDTO insertRentDTO(RentDTO rentDTO) {
         if (rentDTO.getId() != null) {
-            LOGGER.error("insertRentDTO(): there is a body 'id': {}", rentDTO.getId());
-            //throw new BadRequestException();
+            LOGGER.error("insertRentDTO(): there is a body 'ID': {}", rentDTO.getId());
+            throw new BadRequestException();
         }
         // Check if there is already a rent record with the same date and period
         List<Rent> existingRent = rentRepository.findByDateAndPeriod(rentDTO.getDate(),rentDTO.getPeriod());
 
         if (!existingRent.isEmpty()){
-            LOGGER.error("insertRentDTO(): that Date and period is already taken: {}, Please try again with other Date/Period", rentDTO.getDate(),rentDTO.getPeriod());
+            LOGGER.error("insertRentDTO(): that Date and period is already taken: ({} at {}) Please try again with other Date/Period", rentDTO.getDate(),rentDTO.getPeriod());
            // Handle the error, throw an exception, or return an error response
-            throw new Exception("Date and period are already taken");
+            throw new BadRequestException();
         }
 
         Rent rent = new Rent();
@@ -105,7 +108,7 @@ public class RentService {
         rent.setRoom(room);
 
         rent = rentRepository.save(rent);
-        LOGGER.info("insertRentDTO: {}", rentDTO);
+        LOGGER.info("insertRentDTO: You inserted successfully new Rent to: {}", rentDTO);
 
         return toRentDTO(rent);
     }
@@ -115,18 +118,18 @@ public class RentService {
 
         toRent(rentDTO, rent);
         rent = rentRepository.save(rent);
-        LOGGER.info("updateRentDTO() update to: {}", rentDTO);
+        LOGGER.info("updateRentDTO(): You updated successfully Rent to: {}", rentDTO);
 
         return toRentDTO(rent);
     }
 
     public void deleteRent(Long id) throws Exception {
         if (!rentRepository.existsById(id)) {
-            LOGGER.error("deleteRent(): rent with id {} does not exist.", id);
+            LOGGER.error("deleteRent(): Rent with 'ID' {} does not exist.", id);
             throw new Exception("NotFound");
         }
         rentRepository.deleteById(id);
-        LOGGER.info("deleteRent() with id: {},", id);
+        LOGGER.info("deleteRent(): You deleted successfully Rent with 'ID': {}", id);
     }
 
     private RentDTO toRentDTO(Rent rent) {
