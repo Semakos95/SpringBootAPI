@@ -7,6 +7,8 @@ import gr.cinema.api.dto.UserDTO;
 import gr.cinema.api.dto.PerformanceDTO;
 import gr.cinema.api.entity.User;
 import gr.cinema.api.entity.Performance;
+import gr.cinema.api.exception.BadRequestException;
+import gr.cinema.api.exception.NotFoundException;
 import gr.cinema.api.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,22 +31,23 @@ public class UserService {
 
 
     public User getUser(Long id) {
-        LOGGER.info("getCustomer() with id: {}", id);
+        LOGGER.info("getUser() with id: {}", id);
         return userRepository.findById(id).orElse(null);
     }
 
     public UserDTO getUserDTO(Long id) {
-        LOGGER.info("getCustomerDTO() with id: {}", id);
+        LOGGER.info("getUserDTO() with id: {}", id);
         final User user = getUser(id);
 
         if (user == null) {
-            //   throw new NotFoundException();
+            LOGGER.error("getUserDTO() User with id: {} Does not exist!", id);
+            throw new NotFoundException();
         }
         return toUserDTO(user);
     }
 
     public List<UserDTO> getUsersByNameDTOList(String name) {
-        LOGGER.info("getCustomersByName()");
+        LOGGER.info("getUsersByName()");
 
         final List<User> userList = userRepository.findByFirstName(name);
         final List<UserDTO> userDTOList = new ArrayList<>();
@@ -56,10 +59,9 @@ public class UserService {
         return userDTOList;
     }
 
-    //todo: fix all exceptions
 
     public List<UserDTO> getAllUserDTOList() {
-        LOGGER.info("getAllCustomers()");
+        LOGGER.info("getAllUsers()");
 
         final List<User> userList = userRepository.findAll();
         final List<UserDTO> userDTOList = new ArrayList<>();
@@ -74,8 +76,8 @@ public class UserService {
 
     public UserDTO insertUserDTO(UserDTO userDTO) {
         if (userDTO.getId() != null) {
-            LOGGER.error("insertCustomerDTO(): there is a body 'id': {}", userDTO.getId());
-            // throw new BadRequestException();
+             LOGGER.error("insertUserDTO(): there is a body 'ID': {}", userDTO.getId());
+             throw new BadRequestException();
         }
 
         User user = new User();
@@ -84,7 +86,7 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
         user = userRepository.save(user);
-        LOGGER.info("insertCustomerDTO: {}", userDTO);
+        LOGGER.info("insertUserDTO: You inserted successfully new user with 'ID': {}", userDTO);
 
         return toUserDTO(user);
     }
@@ -94,25 +96,18 @@ public class UserService {
 
         toUser(userDTO, user);
         user = userRepository.save(user);
-        LOGGER.info("updateCustomerDTO() update to: {}", userDTO);
+        LOGGER.info("updateUserDTO() You updated successfully user with 'ID': {}", userDTO);
 
         return toUserDTO(user);
     }
 
     public void deleteUser(Long id) throws Exception {
         if (!userRepository.existsById(id)) {
-            LOGGER.error("deleteCustomer(): customer with id {} does not exist.", id);
+            LOGGER.error("deleteUser(): User with 'ID' {} does not exist.", id);
             throw new Exception("NotFound");
         }
         userRepository.deleteById(id);
-        LOGGER.info("deleteCustomer() with id: {}", id);
-    }
-
-    public UserDTO getByEmailAndPasswordDTO(String email, String password) {
-        LOGGER.info("getByEmailAndPasswordDTO()");
-        final User user = userRepository.findByEmailAndPassword(email, password);
-
-        return toUserDTO(user);
+        LOGGER.info("deleteUser() You deleted successfully user with 'ID': {}", id);
     }
 
     private UserDTO toUserDTO(User user) {

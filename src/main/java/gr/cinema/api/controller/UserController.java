@@ -61,10 +61,6 @@ public class UserController {
         userService.deleteUser(id);
     }
 
-    @GetMapping(value = WebConstants.USER_CONTROLLER_AUTHENTICATE)
-    public UserDTO getAuthenticate(@RequestParam("email") String email, @RequestParam("password") String password) {
-        return userService.getByEmailAndPasswordDTO(email, password);
-    }
 
 }
 
