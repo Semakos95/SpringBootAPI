@@ -77,6 +77,10 @@ public class UserService {
              LOGGER.error("insertUserDTO(): there is a body 'ID': {}", userDTO.getId());
              throw new BadRequestException();
         }
+        else if (userRepository.existsByUsername(userDTO.getUsername())){
+            LOGGER.error("insertUserDTO(): This Username: '{}' is taken! ", userDTO.getUsername());
+            throw new BadRequestException();
+        }
 
         User user = new User();
         toUser(userDTO, user);
