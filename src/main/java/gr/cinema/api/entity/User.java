@@ -26,14 +26,12 @@ public class User implements UserDetails {
     private List<Performance> performances;
     @OneToMany(mappedBy = "user")
     private List<Rent> rents;
-    /*
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
+
+    @ManyToMany(cascade = CascadeType.MERGE)
     @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))
     private List<Role> roles = new ArrayList<>();
 
-
-     */
     public Long getId() {
         return id;
     }
@@ -146,7 +144,7 @@ public class User implements UserDetails {
     public void setRents(List<Rent> rents) {
         this.rents = rents;
     }
-/*
+
     public List<Role> getRoles() {
         return roles;
     }
@@ -155,6 +153,6 @@ public class User implements UserDetails {
         this.roles = roles;
     }
 
- */
+
 }
 

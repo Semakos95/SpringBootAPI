@@ -1,6 +1,7 @@
 package gr.cinema.api.validation;
 
 import gr.cinema.api.dto.UserDTO;
+import gr.cinema.api.exception.BadRequestException;
 import gr.cinema.api.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,8 +29,7 @@ public class EmailValidationService {
     public boolean testUsingSimpleRegex(UserDTO userDTO){
         if (userRepository.existsByEmail(userDTO.getEmail())) {
             LOGGER.error("validateEmailUsingSimpleRegex(): there is a body 'email': {}", userDTO.getEmail());
-            // throw new BadRequestException();
-            return false;
+            throw new BadRequestException();
         }
 
         String regexPattern = "^(.+)@(\\S+)$";
@@ -40,8 +40,8 @@ public class EmailValidationService {
     public boolean testUsingStrictRegex(UserDTO userDTO) {
         if (userRepository.existsByEmail(userDTO.getEmail())) {
             LOGGER.error("validateEmailUsingStrictRegex(): there is a body 'email': {}", userDTO.getEmail());
-            // throw new BadRequestException();
-            return false;
+             throw new BadRequestException();
+
         }
 
         String regexPattern = "^(?=.{1,64}@)[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*@"

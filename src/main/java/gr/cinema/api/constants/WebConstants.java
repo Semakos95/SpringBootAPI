@@ -14,6 +14,7 @@ public interface WebConstants {
     String USER = "/api/user";
     String GET_ALL_USERS_BY_NAME = "/allUsersByName";
     String GET_ALL_USERS = "/allUsers";
+    String USER_LOGIN = "/login";
     String USER_CONTROLLER_AUTHENTICATE = "/authenticate";
 
     //PerformanceController
