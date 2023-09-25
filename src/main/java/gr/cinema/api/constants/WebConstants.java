@@ -10,12 +10,20 @@ public interface WebConstants {
     String NAME = "name";
     String PAGE = "/page";
 
+
+    //AdminController
+    String ADMIN = "/admin";
+    String ADMIN_LOGIN = "/login";
+    String ADMIN_GET_ALL_USERS_BY_NAME = "/allUsersByName";
+    String ADMIN_GET_ALL_USERS = "/allUsers";
+
+
     //UserController
     String USER = "/api/user";
+    String USER_LOGIN = "/login";
     String GET_ALL_USERS_BY_NAME = "/allUsersByName";
     String GET_ALL_USERS = "/allUsers";
-    String USER_LOGIN = "/login";
-    String USER_CONTROLLER_AUTHENTICATE = "/authenticate";
+
 
     //PerformanceController
     String PERFORMANCE_CONTROLLER_GET_BY_TITLE = "/api/performance/byTitle";
