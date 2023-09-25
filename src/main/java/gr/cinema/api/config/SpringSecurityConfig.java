@@ -1,80 +1,75 @@
 package gr.cinema.api.config;
 
-import static org.springframework.security.config.Customizer.withDefaults;
-
-import gr.cinema.api.service.SecurityUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import gr.cinema.api.config.jwt.AuthEntryPointJwt;
+import gr.cinema.api.config.jwt.AuthTokenFilter;
+import gr.cinema.api.config.services.UserDetailsServiceImpl;
 
 @Configuration
-@EnableWebSecurity
+@EnableMethodSecurity
+// (securedEnabled = true,
+// jsr250Enabled = true,
+// prePostEnabled = true) // by default
 public class SpringSecurityConfig {
 
-    private final SecurityUserDetailsService securityUserDetailsService;
-    private final SpringBeans springBeans;
     @Autowired
-    private final CustomUserDetailsService customUserDetailsService;
-
-    public SpringSecurityConfig(SecurityUserDetailsService securityUserDetailsService, SpringBeans springBeans, CustomUserDetailsService customUserDetailsService) {
-        this.securityUserDetailsService = securityUserDetailsService;
-        this.springBeans = springBeans;
-        this.customUserDetailsService = customUserDetailsService;
+    UserDetailsServiceImpl userDetailsService;
+    @Autowired
+    private AuthEntryPointJwt unauthorizedHandler;
+    @Bean
+    public AuthTokenFilter authenticationJwtTokenFilter() {
+        return new AuthTokenFilter();
     }
 
+    @Bean
+    public DaoAuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+
+        authProvider.setUserDetailsService(userDetailsService);
+        authProvider.setPasswordEncoder(passwordEncoder());
+
+        return authProvider;
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
+        return authConfig.getAuthenticationManager();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf().disable()
-                .authorizeRequests()
-                .antMatchers("/", "/login","/error", "/register","/favicon.ico", "/api/**", "/static/**", "webjars/**").permitAll()
-                .anyRequest().authenticated()
-                .and().cors(withDefaults())
-                .formLogin()
-                .defaultSuccessUrl("/admin", true)
-                .loginPage("/login")
-                .permitAll()
-                .and()
-                .logout()
-                .permitAll();
+        http.csrf(csrf -> csrf.disable())
+                .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth ->
+                        auth.antMatchers("/api/auth/**").permitAll()
+                                .antMatchers("/api/test/**").permitAll()
+                                .anyRequest().authenticated()
+                );
+
+        http.authenticationProvider(authenticationProvider());
+
+        http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
-
-    @Bean
-    public UserDetailsService users(){
-        UserDetails admin = User.builder()
-                .username("admin")
-                .password("admin")
-                .roles("ADMIN")
-                .build();
-        UserDetails user = User.builder()
-                .username("user")
-                .password("user")
-                .roles("USER")
-                .build();
-        return new InMemoryUserDetailsManager(admin,user);
-    }
-
-    @Autowired
-    public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(securityUserDetailsService).passwordEncoder(springBeans.passwordEncoder());
-    }
-
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception{
-        return authenticationConfiguration.getAuthenticationManager();
-
-    }
-
 }
