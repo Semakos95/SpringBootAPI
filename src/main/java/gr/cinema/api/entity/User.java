@@ -1,25 +1,38 @@
 package gr.cinema.api.entity;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
+import java.util.*;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 @Entity
+@Table(name = "users",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = "username"),
+                @UniqueConstraint(columnNames = "email")
+        })
 public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String firstName;
     private String lastName;
-    private String email;
     private String phone;
     private String address;
     private String postalCode;
+    @NotBlank
+    @Size(max = 50)
+    @Email
+    private String email;
+    @NotBlank
+    @Size(max = 20)
     private String username;
+    @NotBlank
+    @Size(max = 120)
     private String password;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
@@ -27,11 +40,19 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "user")
     private List<Rent> rents;
 
-    @ManyToMany(cascade = CascadeType.MERGE)
-    @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))
-    private List<Role> roles = new ArrayList<>();
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(  name = "user_roles",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id"))
+    private Set<Role> roles = new HashSet<>();
+    public User() {
+    }
 
+    public User(String username, String email, String password) {
+        this.username = username;
+        this.email = email;
+        this.password = password;
+    }
     public Long getId() {
         return id;
     }
@@ -145,14 +166,12 @@ public class User implements UserDetails {
         this.rents = rents;
     }
 
-    public List<Role> getRoles() {
+    public Set<Role> getRoles() {
         return roles;
     }
 
-    public void setRoles(List<Role> roles) {
+    public void setRoles(Set<Role> roles) {
         this.roles = roles;
     }
-
-
 }
 
