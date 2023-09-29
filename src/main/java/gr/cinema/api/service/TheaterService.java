@@ -2,6 +2,7 @@ package gr.cinema.api.service;
 
 import gr.cinema.api.dto.TheaterDTO;
 import gr.cinema.api.entity.Theater;
+import gr.cinema.api.exception.NotFoundException;
 import gr.cinema.api.repository.TheaterRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +29,8 @@ public class TheaterService {
         final Theater theater = getTheater(id);
 
         if (theater == null) {
-            //throw new NotFoundException();
+            LOGGER.error("getTheaterDTO() with id: {} does not exist" , id);
+            throw new NotFoundException();
         }
         return toTheaterDTO(theater);
     }

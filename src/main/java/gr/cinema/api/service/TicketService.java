@@ -8,6 +8,8 @@ import gr.cinema.api.entity.Performance;
 import gr.cinema.api.entity.Room;
 import gr.cinema.api.entity.Section;
 import gr.cinema.api.entity.Ticket;
+import gr.cinema.api.exception.BadRequestException;
+import gr.cinema.api.exception.NotFoundException;
 import gr.cinema.api.repository.TicketRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,7 +73,8 @@ public class TicketService {
         final Ticket ticket = getTicket(id);
 
         if (ticket == null) {
-            //throw new NotFoundException();
+            LOGGER.error("getTicketDTO() with id: {} does not exist" , id);
+            throw new NotFoundException();
         }
         return toTicketDTO(ticket);
     }
@@ -79,7 +82,7 @@ public class TicketService {
     public TicketDTO insertTicketDTO(TicketDTO ticketDTO) {
         if (ticketDTO.getId() != null) {
             LOGGER.error("insertTicketDTO(): there is a body 'id': {}", ticketDTO.getId());
-            //throw new BadRequestException();
+            throw new BadRequestException();
         }
         Ticket ticket = new Ticket();
         toTicket(ticketDTO, ticket);
@@ -94,7 +97,7 @@ public class TicketService {
         ticket.setSection(section);
 
         ticket = ticketRepository.save(ticket);
-        LOGGER.info("insertCustomerDTO: {}", ticketDTO);
+        LOGGER.info("insertTicketDTO: {}", ticketDTO);
 
         return toTicketDTO(ticket);
     }

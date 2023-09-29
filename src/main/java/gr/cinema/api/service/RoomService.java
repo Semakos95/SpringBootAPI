@@ -2,6 +2,8 @@ package gr.cinema.api.service;
 
 import gr.cinema.api.dto.RoomDTO;
 import gr.cinema.api.entity.Room;
+import gr.cinema.api.exception.BadRequestException;
+import gr.cinema.api.exception.NotFoundException;
 import gr.cinema.api.repository.RoomRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +46,8 @@ public class RoomService {
         final Room room = getRoom(id);
 
         if (room == null) {
-            //throw new NotFoundException();
+            LOGGER.error("getRoomDTO(): Room with 'ID' {} does not exist.", id);
+            throw new NotFoundException();
         }
         return toRoomDTO(room);
     }
@@ -52,6 +55,7 @@ public class RoomService {
     public RoomDTO insertRoomDTO(RoomDTO roomDTO) {
         if (roomDTO.getId() != null) {
             LOGGER.error("insertRoomDTO(): there is a body 'id': {}", roomDTO.getId());
+            throw new BadRequestException();
         }
         Room room = new Room();
         toRoom(roomDTO, room);

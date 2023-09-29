@@ -4,6 +4,7 @@ import gr.cinema.api.dto.RoomDTO;
 import gr.cinema.api.dto.SectionDTO;
 import gr.cinema.api.entity.Room;
 import gr.cinema.api.entity.Section;
+import gr.cinema.api.exception.NotFoundException;
 import gr.cinema.api.repository.SectionRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,11 +40,12 @@ public class SectionService {
     }
 
     public SectionDTO getSectionDTOByNameAndRoomId(String name, Long id){
-        LOGGER.info("getSectionByNameAndRoomId ()");
+        LOGGER.info("getSectionByNameAndRoomId(): ");
         final Section section = sectionRepository.findByNameAndRoomId(name,id);
 
         if (section == null){
-            //throw new NotFoundException();
+            LOGGER.error("getSectionByNameAndRoomId(): Section by 'Name': {} and 'ID': {} does not exist.", name , id);
+            throw new NotFoundException();
         }
         return toSectionDTO(section);
     }
@@ -58,7 +60,8 @@ public class SectionService {
         final Section section = getSection(id);
 
         if (section == null) {
-            //throw new NotFoundException();
+            LOGGER.error("getSectionDTO(): Section with 'ID' {} does not exist.", id);
+            throw new NotFoundException();
         }
         return toSectionDTO(section);
     }

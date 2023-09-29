@@ -41,7 +41,7 @@ public class UserController {
     @PutMapping(WebConstants.ID_PATH)//http://localhost:8080/api/user/1 OK (insert same id on json body with same id on url path("id": 1))
     public UserDTO updateUser(@PathVariable(WebConstants.ID) Long id, @RequestBody UserDTO userDTO) throws Exception {
         if (!id.equals(userDTO.getId())) {
-            LOGGER.error("updateCustomer(): path variable 'id': {} and body 'id': {} does not match", id, userDTO.getId());
+            LOGGER.error("updateUser(): path variable 'id': {} and body 'id': {} does not match", id, userDTO.getId());
             throw new Exception("BadRequest");
         }
         userDTO.setId(id);
