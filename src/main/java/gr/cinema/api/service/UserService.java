@@ -1,11 +1,14 @@
 package gr.cinema.api.service;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
+import gr.cinema.api.config.jwt.JwtUtils;
+import gr.cinema.api.config.payload.response.JwtResponse;
+import gr.cinema.api.config.services.UserDetailsImpl;
 import gr.cinema.api.dto.UserDTO;
 import gr.cinema.api.dto.PerformanceDTO;
+import gr.cinema.api.entity.ERole;
 import gr.cinema.api.entity.Role;
 import gr.cinema.api.entity.User;
 import gr.cinema.api.entity.Performance;
@@ -28,14 +31,16 @@ import org.springframework.stereotype.Service;
 public class UserService {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserService.class);
     private final AuthenticationManager authenticationManager;
+    private final JwtUtils jwtUtils;
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailValidationService emailValidationService;
 
     @Autowired
-    public UserService(AuthenticationManager authenticationManager, UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder, EmailValidationService emailValidationService) {
+    public UserService(AuthenticationManager authenticationManager, JwtUtils jwtUtils, UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder, EmailValidationService emailValidationService) {
         this.authenticationManager = authenticationManager;
+        this.jwtUtils = jwtUtils;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
@@ -85,42 +90,76 @@ public class UserService {
         return toUserDTO(user);
     }
 
-    public void loginUser(UserDTO userDTO){
-        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(userDTO.getUsername(),userDTO.getPassword()));
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        LOGGER.info("User signed success!!");
+    public JwtResponse loginUserWithJwtResponse(UserDTO userDTO){
 
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(userDTO.getUsername(), userDTO.getPassword()));
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        String jwt = jwtUtils.generateJwtToken(authentication);
+
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        List<String> roles = userDetails.getAuthorities().stream()
+                .map(item -> item.getAuthority())
+                .collect(Collectors.toList());
+
+        // Create and return a JwtResponse instance with the authentication result
+        JwtResponse jwtResponse = new JwtResponse(jwt, userDetails.getId(), userDetails.getUsername(), userDetails.getEmail(), roles);
+
+        return jwtResponse;
     }
 
-    public UserDTO insertUserDTO(UserDTO userDTO) {
+    public UserDTO registerUserDTO(UserDTO userDTO) {
         if (userDTO.getId() != null) {
-             LOGGER.error("insertUserDTO(): there is a body 'ID': {}", userDTO.getId());
-             throw new BadRequestException();
+            LOGGER.error("registerUserDTO(): there is a body 'id': {}", userDTO.getId());
+           throw new BadRequestException();
         }
-        else if (userRepository.existsByUsername(userDTO.getUsername())){
-            LOGGER.error("insertUserDTO(): This Username: '{}' is taken! ", userDTO.getUsername());
-            throw new BadRequestException();
+        if (userRepository.existsByUsername(userDTO.getUsername())) {
+            LOGGER.error("registerUserDTO(): Error: Username: {} is already taken!", userDTO.getUsername());
+           throw new BadRequestException();
         }
-        // Validate email using simple regex
+
+        if (userRepository.existsByEmail(userDTO.getEmail())) {
+            LOGGER.error("registerUserDTO(): Error: Email: {} is already in use!", userDTO.getEmail());
+          throw new BadRequestException();
+        }
         if (!emailValidationService.testUsingSimpleRegex(userDTO)) {
-            LOGGER.error("insertUserDTO(): Invalid email address: '{}'", userDTO.getEmail());
-            throw new BadRequestException();
+            LOGGER.error("registerUserDTO(): Invalid email address: '{}'", userDTO.getEmail());
+           throw new BadRequestException();
         }
 
         User user = new User();
         toUser(userDTO, user);
 
-        Role role = roleRepository.findByName("USER").get();
-        user.setRoles(Collections.singletonList(role));
+        Set<String> strRoles = userDTO.getRoles();
+        Set<Role> roles = new HashSet<>();
 
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        if (strRoles == null) {
+            Role userRole = roleRepository.findByName(ERole.ROLE_USER)
+                    .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+            roles.add(userRole);
+        } else {
+            for (String role : strRoles) {
+                if ("admin".equals(role)) {
+                    Role adminRole = roleRepository.findByName(ERole.ROLE_ADMIN)
+                            .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+                    roles.add(adminRole);
+                } else {
+                    Role userRole = roleRepository.findByName(ERole.ROLE_USER)
+                            .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+                    roles.add(userRole);
+                }
+            }
+        }
+
+        user.setRoles(roles);
 
         user = userRepository.save(user);
-        LOGGER.info("insertUserDTO: You inserted successfully new user to: {}", userDTO);
-        LOGGER.info("insertUserDTO: Also has a '{}' Role ",role.getName());
+        LOGGER.info("registerUserDTO: User registered successfully! {}", userDTO);
 
         return toUserDTO(user);
     }
+
 
     public UserDTO updateUserDTO(UserDTO userDTO) throws Exception {
         User user = userRepository.findById(userDTO.getId()).orElseThrow(Exception::new);//not found exception
@@ -155,6 +194,12 @@ public class UserService {
         }
         userDTO.setPerformancesDTO(performanceDTOList);
 
+        // Populate roles
+        Set<String> roleNames = user.getRoles().stream()
+                .map(role -> role.getName().toString())
+                .collect(Collectors.toSet());
+        userDTO.setRoles(roleNames);
+
         userDTO.setId(user.getId());
         userDTO.setFirstName(user.getFirstName());
         userDTO.setLastName(user.getLastName());
@@ -175,7 +220,7 @@ public class UserService {
         user.setAddress(userDTO.getAddress());
         user.setPostalCode(userDTO.getPostalCode());
         user.setUsername(userDTO.getUsername());
-        user.setPassword(userDTO.getPassword());
+        user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
     }
 
 }

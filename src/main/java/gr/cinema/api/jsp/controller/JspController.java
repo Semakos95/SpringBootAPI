@@ -37,7 +37,7 @@ public class JspController {
 
     @PostMapping("/register")//http://localhost:8080/register
     public String registerUser(@ModelAttribute("user") UserDTO userDTO) {
-        userService.insertUserDTO(userDTO);
+        userService.registerUserDTO(userDTO);
         // You can add success messages or redirection logic here
         return "redirect:/showAllUsers";
     }

@@ -61,7 +61,7 @@ public class SpringSecurityConfig {
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth ->
-                        auth.antMatchers("/api/auth/**").permitAll()
+                                auth.antMatchers("/api/auth/**").permitAll()
                                 .antMatchers("/api/test/**").permitAll()
                                 .anyRequest().authenticated()
                 );

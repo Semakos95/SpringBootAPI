@@ -1,6 +1,9 @@
 package gr.cinema.api.dto;
 
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
 import java.util.List;
+import java.util.Set;
 
 public class UserDTO {
     private Long id;
@@ -13,6 +16,7 @@ public class UserDTO {
     private String username;
     private String password;
     private List<PerformanceDTO> performancesDTO;
+    private Set<String> roles;
 
 
     public Long getId() { return id; }
@@ -91,5 +95,11 @@ public class UserDTO {
         this.performancesDTO = performancesDTO;
     }
 
+    public Set<String> getRoles() {
+        return roles;
+    }
 
+    public void setRoles(Set<String> roles) {
+        this.roles = roles;
+    }
 }

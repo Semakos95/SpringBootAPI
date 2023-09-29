@@ -10,6 +10,11 @@ public interface WebConstants {
     String NAME = "name";
     String PAGE = "/page";
 
+    //AuthController
+    String AUTH = "/api/auth";
+    String AUTH_LOGIN = "/login";
+    String AUTH_REGISTER = "/register";
+
 
     //AdminController
     String ADMIN = "/admin";
